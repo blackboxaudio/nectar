@@ -18,28 +18,23 @@ jobs:
       - name: Detect Changed Packages
         id: package-changes
         run: |
-          # Get list of packages that had version changes
-          CHANGED_PACKAGES=""
+          HAS_CHANGED=false
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          PREVIOUS_VERSION=$(git show HEAD~1:package.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).version")
 
-          for package in core platform domain ui-kit; do
-            CURRENT_VERSION=$(node -p "require('./packages/$package/package.json').version")
-            PREVIOUS_VERSION=$(git show HEAD~1:packages/$package/package.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).version")
+          if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
+            HAS_CHANGED=true
+            echo "Version changed: $PREVIOUS_VERSION -> $CURRENT_VERSION"
+          fi
 
-            if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
-              echo "Package $package version changed: $PREVIOUS_VERSION -> $CURRENT_VERSION"
-              CHANGED_PACKAGES="$CHANGED_PACKAGES $package"
-            fi
-          done
-
-          echo "changed_packages=$CHANGED_PACKAGES" >> $GITHUB_OUTPUT
-          echo "has_changes=$([ -n '$CHANGED_PACKAGES' ] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+          echo "has_changed=$HAS_CHANGED" >> $GITHUB_OUTPUT
 
       - name: Setup
-        if: steps.package-changes.outputs.has_changes == 'true'
+        if: steps.package-changes.outputs.has_changed == 'true'
         uses: ./.github/actions
 
       - name: Publish to NPM
-        if: steps.package-changes.outputs.has_changes == 'true'
+        if: steps.package-changes.outputs.has_changed == 'true'
         run: |
           npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
           npm publish
