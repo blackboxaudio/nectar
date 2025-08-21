@@ -1,13 +1,12 @@
 name: Publish
 
-on:
-  workflow_dispatch:
+on: [workflow_dispatch]
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     env:
-      NPM_TOKEN: ${{ NPM_TOKEN }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
