@@ -1,0 +1,17 @@
+name: Setup
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22.18.0
+
+    - name: Install Yarn
+      shell: bash
+      run: npm install -g yarn
+
+    - name: Install Dependencies
+      shell: bash
+      run: yarn
