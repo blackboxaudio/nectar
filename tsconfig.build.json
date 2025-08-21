@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "rootDir": "src",
+        "outDir": "dist",
+        "target": "es5",
+        "module": "esnext",
+        "moduleResolution": "node",
+        "lib": ["es2017", "dom", "es5"],
+        "sourceMap": true,
+        "strict": true,
+        "strictFunctionTypes": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "alwaysStrict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "skipLibCheck": true,
+        "declaration": true,
+        "declarationDir": "dist/dts",
+        "esModuleInterop": true
+    },
+    "include": ["src/index.ts"],
+    "exclude": ["node_modules", "dist", "test"]
+}

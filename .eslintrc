@@ -1,0 +1,35 @@
+{
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint/eslint-plugin", "jest"],
+    "extends": [
+        "eslint:recommended"
+    ],
+    "overrides": [
+        {
+            "files": ["**/*.ts"],
+            "extends": [
+                "plugin:@typescript-eslint/eslint-recommended",
+                "plugin:@typescript-eslint/recommended",
+                "plugin:@typescript-eslint/recommended-requiring-type-checking"
+            ],
+            "parser": "@typescript-eslint/parser",
+            "parserOptions": {
+                "ecmaVersion": 6,
+                "sourceType": "module",
+                "project": "tsconfig.lint.json",
+                "tsconfigRootDir": "./"
+            },
+            "plugins": ["@typescript-eslint", "jest"],
+            "rules": {
+                "no-unsafe-optional-chaining": "off"
+            }
+        }
+    ],
+    "env": {
+        "jest": true,
+        "browser": true,
+        "es6": true,
+        "node": true
+    }
+}
