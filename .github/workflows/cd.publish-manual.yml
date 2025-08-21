@@ -5,7 +5,7 @@ on:
     inputs:
       version:
         type: choice
-        options: ['major', 'minor', 'patch' 'none']
+        options: ['major', 'minor', 'patch', 'none']
         description: 'Select the type of version increment (choose "None" to skip)'
         required: false
         default: 'none'
