@@ -1,19 +1,15 @@
-# `@bloom-labs/template-lib`
+# `@bbx-audio/nectar`
 
-[![@bloom-labs/template-lib](https://img.shields.io/badge/%40bloom--labs%2Flib--template-v0.1.0-informational)](https://github.com/bloomwalletio/template-lib)
-[![downloads](https://img.shields.io/npm/dm/@bloom-labs/template-lib)](https://npmjs.com/package/@bloom-labs/template-lib)
-[![CI](https://github.com/bloomwalletio/template-lib/actions/workflows/ci.yml/badge.svg)](https://github.com/bloomwalletio/template-lib/actions/workflows/ci.yml)
-
-> Template repository for any Bloom library
+> A JUCE-y module for building web-based plugin GUIs 🍯
 
 ## Installation
 
 ```bash
 # NPM
-npm i @bloom-labs/template-lib
+npm i @bbx-audio/nectar
 
 # Yarn
-yarn add @bloom-labs/template-lib
+yarn add @bbx-audio/nectar
 ```
 
 ## Usage
@@ -35,10 +31,3 @@ This takes care of...
 - Committing the changes to the working branch
 - Tagging the latest commit with the appropriate version number
 - Pushing the commit and tag to the repository
-
-## Contributing
-
-Please feel free to make a contribution in the following ways:
-
-- Filing a [bug report](https://github.com/bloomwalletio/template-lib/issues/new?assignees=&labels=bug-report&projects=&template=bug_report.yml&title=%F0%9F%90%9E+-+)
-- Creating a [pull request](https://github.com/bloomwalletio/template-lib/compare)
