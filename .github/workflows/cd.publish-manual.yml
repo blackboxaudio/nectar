@@ -24,7 +24,7 @@ jobs:
 
       - name: Increment Version
         if: ${{ github.event.inputs.version != 'none' }}
-        run: yarn increment -- ${{ github.event.inputs.version }}
+        run: yarn increment ${{ github.event.inputs.version }}
 
       - name: Commit and Push
         if: ${{ github.event.inputs.version != 'none' }}
