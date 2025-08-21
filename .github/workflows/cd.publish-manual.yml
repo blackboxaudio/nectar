@@ -1,0 +1,41 @@
+name: Publish - Manual
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: choice
+        options: ['major', 'minor', 'patch' 'none']
+        description: 'Select the type of version increment (choose "None" to skip)'
+        required: false
+        default: 'none'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./.github/actions
+
+      - name: Increment Version
+        if: ${{ github.event.inputs.version != 'none' }}
+        run: yarn increment -- ${{ github.event.inputs.version }}
+
+      - name: Commit and Push
+        if: ${{ github.event.inputs.version != 'none' }}
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "github-actions@github.com"
+          git add **/package.json
+          git commit -m "chore: increment \`@bbx-audio/nectar` version to \`${{ github.event.inputs.version }}\`"
+          git push origin HEAD:${{ github.ref }}
+
+      - name: Publish to NPM
+        run: |
+          npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+          npm publish

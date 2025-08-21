@@ -1,6 +1,6 @@
 {
     "name": "@bbx-audio/nectar",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "description": "A JUCE-y module for building web-based plugin GUIs 🍯",
     "private": false,
     "license": "MIT",
@@ -25,6 +25,7 @@
         "format": "yarn format:fix",
         "format:check": "prettier --check \"**/*.{ts,js,json}\"",
         "format:fix": "prettier --write \"**/*.{ts,js,json}\"",
+        "increment": "node scripts/increment_version.js",
         "lint": "yarn lint:fix",
         "lint:check": "eslint --cache --debug \"**/*.{ts,js}\"",
         "lint:fix": "eslint --cache --fix \"**/*.{ts,js}\"",
