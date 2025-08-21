@@ -32,27 +32,35 @@
   ==============================================================================
 */
 
-import "./check_native_interop.js";
+import type {
+  IComboBoxProperties, ICompleteEvent, IPromiseResolvers, IPropertiesChangedEvent, ISliderProperties,
+  IToggleProperties, IValueChangedEvent } from './types.ts'
+
+import "./check_native_interop";
 
 class PromiseHandler {
+  private lastPromiseId: number;
+  private promises: Map<number, IPromiseResolvers>;
+
   constructor() {
     this.lastPromiseId = 0;
     this.promises = new Map();
 
-    window.__JUCE__.backend.addEventListener(
-      "__juce__complete",
-      ({ promiseId, result }) => {
-        if (this.promises.has(promiseId)) {
-          this.promises.get(promiseId).resolve(result);
-          this.promises.delete(promiseId);
+    window.__JUCE__.backend!.addEventListener(
+        "__juce__complete",
+        (event: unknown) => {
+          const { promiseId, result } = event as ICompleteEvent;
+          if (this.promises.has(promiseId)) {
+            this.promises.get(promiseId)!.resolve(result);
+            this.promises.delete(promiseId);
+          }
         }
-      }
     );
   }
 
-  createPromise() {
+  createPromise(): [number, Promise<unknown>] {
     const promiseId = this.lastPromiseId++;
-    const result = new Promise((resolve, reject) => {
+    const result = new Promise<unknown>((resolve, reject) => {
       this.promises.set(promiseId, { resolve: resolve, reject: reject });
     });
     return [promiseId, result];
@@ -70,18 +78,18 @@ const promiseHandler = new PromiseHandler();
  *
  * @param {String} name
  */
-function getNativeFunction(name) {
-  if (!window.__JUCE__.initialisationData.__juce__functions.includes(name))
+function getNativeFunction(name: string): (...args: unknown[]) => Promise<unknown> {
+  if (!window.__JUCE__.initialisationData!.__juce__functions.includes(name))
     console.warn(
-      `Creating native function binding for '${name}', which is unknown to the backend`
+        `Creating native function binding for '${name}', which is unknown to the backend`
     );
 
-  const f = function () {
+  const f = function (...args: unknown[]): Promise<unknown> {
     const [promiseId, result] = promiseHandler.createPromise();
 
-    window.__JUCE__.backend.emitEvent("__juce__invoke", {
+    window.__JUCE__.backend!.emitEvent("__juce__invoke", {
       name: name,
-      params: Array.prototype.slice.call(arguments),
+      params: args,
       resultId: promiseId,
     });
 
@@ -93,25 +101,28 @@ function getNativeFunction(name) {
 
 //==============================================================================
 
-class ListenerList {
+class ListenerList<T = unknown> {
+  private listeners: Map<number, (payload: T) => void>;
+  private listenerId: number;
+
   constructor() {
     this.listeners = new Map();
     this.listenerId = 0;
   }
 
-  addListener(fn) {
+  addListener(fn: (payload: T) => void): number {
     const newListenerId = this.listenerId++;
     this.listeners.set(newListenerId, fn);
     return newListenerId;
   }
 
-  removeListener(id) {
+  removeListener(id: number): void {
     if (this.listeners.has(id)) {
       this.listeners.delete(id);
     }
   }
 
-  callListeners(payload) {
+  callListeners(payload: T): void {
     for (const [, value] of this.listeners) {
       value(payload);
     }
@@ -133,10 +144,17 @@ const SliderControl_sliderDragEndedEventId = "sliderDragEnded";
  * @param {String} name
  */
 class SliderState {
-  constructor(name) {
-    if (!window.__JUCE__.initialisationData.__juce__sliders.includes(name))
+  public readonly name: string;
+  private readonly identifier: string;
+  private scaledValue: number;
+  public readonly properties: ISliderProperties;
+  public readonly valueChangedEvent: ListenerList<void>;
+  public readonly propertiesChangedEvent: ListenerList<void>;
+
+  constructor(name: string) {
+    if (!window.__JUCE__.initialisationData!.__juce__sliders.includes(name))
       console.warn(
-        "Creating SliderState for '" +
+          "Creating SliderState for '" +
           name +
           "', which is unknown to the backend"
       );
@@ -154,14 +172,14 @@ class SliderState {
       interval: 0,
       parameterIndex: -1,
     };
-    this.valueChangedEvent = new ListenerList();
-    this.propertiesChangedEvent = new ListenerList();
+    this.valueChangedEvent = new ListenerList<void>();
+    this.propertiesChangedEvent = new ListenerList<void>();
 
-    window.__JUCE__.backend.addEventListener(this.identifier, (event) =>
-      this.handleEvent(event)
+    window.__JUCE__.backend!.addEventListener(this.identifier, (event: unknown) =>
+        this.handleEvent(event)
     );
 
-    window.__JUCE__.backend.emitEvent(this.identifier, {
+    window.__JUCE__.backend!.emitEvent(this.identifier, {
       eventType: "requestInitialUpdate",
     });
   }
@@ -173,14 +191,14 @@ class SliderState {
    * The meaning of this range is the same as in the case of
    * AudioProcessorParameter::getValue() (C++).
    *
-   * @param {String} name
+   * @param {number} newValue
    */
-  setNormalisedValue(newValue) {
+  setNormalisedValue(newValue: number): void {
     this.scaledValue = this.snapToLegalValue(
-      this.normalisedToScaledValue(newValue)
+        this.normalisedToScaledValue(newValue)
     );
 
-    window.__JUCE__.backend.emitEvent(this.identifier, {
+    window.__JUCE__.backend!.emitEvent(this.identifier, {
       eventType: BasicControl_valueChangedEventId,
       value: this.scaledValue,
     });
@@ -189,8 +207,8 @@ class SliderState {
   /**
    * This function should be called first thing when the user starts interacting with the slider.
    */
-  sliderDragStarted() {
-    window.__JUCE__.backend.emitEvent(this.identifier, {
+  sliderDragStarted(): void {
+    window.__JUCE__.backend!.emitEvent(this.identifier, {
       eventType: SliderControl_sliderDragStartedEventId,
     });
   }
@@ -198,22 +216,23 @@ class SliderState {
   /**
    * This function should be called when the user finished the interaction with the slider.
    */
-  sliderDragEnded() {
-    window.__JUCE__.backend.emitEvent(this.identifier, {
+  sliderDragEnded(): void {
+    window.__JUCE__.backend!.emitEvent(this.identifier, {
       eventType: SliderControl_sliderDragEndedEventId,
     });
   }
 
   /** Internal. */
-  handleEvent(event) {
-    if (event.eventType == BasicControl_valueChangedEventId) {
-      this.scaledValue = event.value;
+  private handleEvent(event: unknown): void {
+    const eventObj = event as IValueChangedEvent & IPropertiesChangedEvent;
+
+    if (eventObj.eventType == BasicControl_valueChangedEventId) {
+      this.scaledValue = eventObj.value as number;
       this.valueChangedEvent.callListeners();
     }
-    if (event.eventType == BasicControl_propertiesChangedId) {
-      // eslint-disable-next-line no-unused-vars
-      let { eventType: _, ...rest } = event;
-      this.properties = rest;
+    if (eventObj.eventType == BasicControl_propertiesChangedId) {
+      const { eventType: _, ...rest } = eventObj;
+      Object.assign(this.properties, rest);
       this.propertiesChangedEvent.callListeners();
     }
   }
@@ -223,7 +242,7 @@ class SliderState {
    * NormalisableRange::convertFrom0to1() (C++). This value will differ from a linear
    * [0, 1] range if a non-default NormalisableRange was set for the parameter.
    */
-  getScaledValue() {
+  getScaledValue(): number {
     return this.scaledValue;
   }
 
@@ -233,46 +252,44 @@ class SliderState {
    *
    * The meaning of this range is the same as in the case of
    * AudioProcessorParameter::getValue() (C++).
-   *
-   * @param {String} name
    */
-  getNormalisedValue() {
+  getNormalisedValue(): number {
     return Math.pow(
-      (this.scaledValue - this.properties.start) /
+        (this.scaledValue - this.properties.start) /
         (this.properties.end - this.properties.start),
-      this.properties.skew
+        this.properties.skew
     );
   }
 
   /** Internal. */
-  normalisedToScaledValue(normalisedValue) {
+  private normalisedToScaledValue(normalisedValue: number): number {
     return (
-      Math.pow(normalisedValue, 1 / this.properties.skew) *
+        Math.pow(normalisedValue, 1 / this.properties.skew) *
         (this.properties.end - this.properties.start) +
-      this.properties.start
+        this.properties.start
     );
   }
 
   /** Internal. */
-  snapToLegalValue(value) {
+  private snapToLegalValue(value: number): number {
     const interval = this.properties.interval;
 
     if (interval == 0) return value;
 
     const start = this.properties.start;
-    const clamp = (val, min = 0, max = 1) => Math.max(min, Math.min(max, val));
+    const clamp = (val: number, min = 0, max = 1): number => Math.max(min, Math.min(max, val));
 
     return clamp(
-      start + interval * Math.floor((value - start) / interval + 0.5),
-      this.properties.start,
-      this.properties.end
+        start + interval * Math.floor((value - start) / interval + 0.5),
+        this.properties.start,
+        this.properties.end
     );
   }
 }
 
-const sliderStates = new Map();
+const sliderStates = new Map<string, SliderState>();
 
-for (const sliderName of window.__JUCE__.initialisationData.__juce__sliders)
+for (const sliderName of window.__JUCE__.initialisationData!.__juce__sliders)
   sliderStates.set(sliderName, new SliderState(sliderName));
 
 /**
@@ -284,10 +301,10 @@ for (const sliderName of window.__JUCE__.initialisationData.__juce__sliders)
  *
  * @param {String} name
  */
-function getSliderState(name) {
+function getSliderState(name: string): SliderState {
   if (!sliderStates.has(name)) sliderStates.set(name, new SliderState(name));
 
-  return sliderStates.get(name);
+  return sliderStates.get(name)!;
 }
 
 /**
@@ -300,10 +317,17 @@ function getSliderState(name) {
  * @param {String} name
  */
 class ToggleState {
-  constructor(name) {
-    if (!window.__JUCE__.initialisationData.__juce__toggles.includes(name))
+  public readonly name: string;
+  private readonly identifier: string;
+  private value: boolean;
+  public readonly properties: IToggleProperties;
+  public readonly valueChangedEvent: ListenerList<void>;
+  public readonly propertiesChangedEvent: ListenerList<void>;
+
+  constructor(name: string) {
+    if (!window.__JUCE__.initialisationData!.__juce__toggles.includes(name))
       console.warn(
-        "Creating ToggleState for '" +
+          "Creating ToggleState for '" +
           name +
           "', which is unknown to the backend"
       );
@@ -315,51 +339,52 @@ class ToggleState {
       name: "",
       parameterIndex: -1,
     };
-    this.valueChangedEvent = new ListenerList();
-    this.propertiesChangedEvent = new ListenerList();
+    this.valueChangedEvent = new ListenerList<void>();
+    this.propertiesChangedEvent = new ListenerList<void>();
 
-    window.__JUCE__.backend.addEventListener(this.identifier, (event) =>
-      this.handleEvent(event)
+    window.__JUCE__.backend!.addEventListener(this.identifier, (event: unknown) =>
+        this.handleEvent(event)
     );
 
-    window.__JUCE__.backend.emitEvent(this.identifier, {
+    window.__JUCE__.backend!.emitEvent(this.identifier, {
       eventType: "requestInitialUpdate",
     });
   }
 
   /** Returns the value corresponding to the associated WebToggleRelay's (C++) state. */
-  getValue() {
+  getValue(): boolean {
     return this.value;
   }
 
   /** Informs the backend to change the associated WebToggleRelay's (C++) state. */
-  setValue(newValue) {
+  setValue(newValue: boolean): void {
     this.value = newValue;
 
-    window.__JUCE__.backend.emitEvent(this.identifier, {
+    window.__JUCE__.backend!.emitEvent(this.identifier, {
       eventType: BasicControl_valueChangedEventId,
       value: this.value,
     });
   }
 
   /** Internal. */
-  handleEvent(event) {
-    if (event.eventType == BasicControl_valueChangedEventId) {
-      this.value = event.value;
+  private handleEvent(event: unknown): void {
+    const eventObj = event as IValueChangedEvent & IPropertiesChangedEvent;
+
+    if (eventObj.eventType == BasicControl_valueChangedEventId) {
+      this.value = eventObj.value as boolean;
       this.valueChangedEvent.callListeners();
     }
-    if (event.eventType == BasicControl_propertiesChangedId) {
-      // eslint-disable-next-line no-unused-vars
-      let { eventType: _, ...rest } = event;
-      this.properties = rest;
+    if (eventObj.eventType == BasicControl_propertiesChangedId) {
+      const { eventType: _, ...rest } = eventObj;
+      Object.assign(this.properties, rest);
       this.propertiesChangedEvent.callListeners();
     }
   }
 }
 
-const toggleStates = new Map();
+const toggleStates = new Map<string, ToggleState>();
 
-for (const name of window.__JUCE__.initialisationData.__juce__toggles)
+for (const name of window.__JUCE__.initialisationData!.__juce__toggles)
   toggleStates.set(name, new ToggleState(name));
 
 /**
@@ -371,10 +396,10 @@ for (const name of window.__JUCE__.initialisationData.__juce__toggles)
  *
  * @param {String} name
  */
-function getToggleState(name) {
+function getToggleState(name: string): ToggleState {
   if (!toggleStates.has(name)) toggleStates.set(name, new ToggleState(name));
 
-  return toggleStates.get(name);
+  return toggleStates.get(name)!;
 }
 
 /**
@@ -387,10 +412,17 @@ function getToggleState(name) {
  * @param {String} name
  */
 class ComboBoxState {
-  constructor(name) {
-    if (!window.__JUCE__.initialisationData.__juce__comboBoxes.includes(name))
+  public readonly name: string;
+  private readonly identifier: string;
+  private value: number;
+  public readonly properties: IComboBoxProperties;
+  public readonly valueChangedEvent: ListenerList<void>;
+  public readonly propertiesChangedEvent: ListenerList<void>;
+
+  constructor(name: string) {
+    if (!window.__JUCE__.initialisationData!.__juce__comboBoxes.includes(name))
       console.warn(
-        "Creating ComboBoxState for '" +
+          "Creating ComboBoxState for '" +
           name +
           "', which is unknown to the backend"
       );
@@ -403,14 +435,14 @@ class ComboBoxState {
       parameterIndex: -1,
       choices: [],
     };
-    this.valueChangedEvent = new ListenerList();
-    this.propertiesChangedEvent = new ListenerList();
+    this.valueChangedEvent = new ListenerList<void>();
+    this.propertiesChangedEvent = new ListenerList<void>();
 
-    window.__JUCE__.backend.addEventListener(this.identifier, (event) =>
-      this.handleEvent(event)
+    window.__JUCE__.backend!.addEventListener(this.identifier, (event: unknown) =>
+        this.handleEvent(event)
     );
 
-    window.__JUCE__.backend.emitEvent(this.identifier, {
+    window.__JUCE__.backend!.emitEvent(this.identifier, {
       eventType: "requestInitialUpdate",
     });
   }
@@ -421,7 +453,7 @@ class ComboBoxState {
    * This is an index identifying which element of the properties.choices array is currently
    * selected.
    */
-  getChoiceIndex() {
+  getChoiceIndex(): number {
     return Math.round(this.value * (this.properties.choices.length - 1));
   }
 
@@ -431,34 +463,35 @@ class ComboBoxState {
    * This should be called with the index identifying the selected element from the
    * properties.choices array.
    */
-  setChoiceIndex(index) {
+  setChoiceIndex(index: number): void {
     const numItems = this.properties.choices.length;
     this.value = numItems > 1 ? index / (numItems - 1) : 0.0;
 
-    window.__JUCE__.backend.emitEvent(this.identifier, {
+    window.__JUCE__.backend!.emitEvent(this.identifier, {
       eventType: BasicControl_valueChangedEventId,
       value: this.value,
     });
   }
 
   /** Internal. */
-  handleEvent(event) {
-    if (event.eventType == BasicControl_valueChangedEventId) {
-      this.value = event.value;
+  private handleEvent(event: unknown): void {
+    const eventObj = event as IValueChangedEvent & IPropertiesChangedEvent;
+
+    if (eventObj.eventType == BasicControl_valueChangedEventId) {
+      this.value = eventObj.value as number;
       this.valueChangedEvent.callListeners();
     }
-    if (event.eventType == BasicControl_propertiesChangedId) {
-      // eslint-disable-next-line no-unused-vars
-      let { eventType: _, ...rest } = event;
-      this.properties = rest;
+    if (eventObj.eventType == BasicControl_propertiesChangedId) {
+      const { eventType: _, ...rest } = eventObj;
+      Object.assign(this.properties, rest);
       this.propertiesChangedEvent.callListeners();
     }
   }
 }
 
-const comboBoxStates = new Map();
+const comboBoxStates = new Map<string, ComboBoxState>();
 
-for (const name of window.__JUCE__.initialisationData.__juce__comboBoxes)
+for (const name of window.__JUCE__.initialisationData!.__juce__comboBoxes)
   comboBoxStates.set(name, new ComboBoxState(name));
 
 /**
@@ -470,11 +503,11 @@ for (const name of window.__JUCE__.initialisationData.__juce__comboBoxes)
  *
  * @param {String} name
  */
-function getComboBoxState(name) {
+function getComboBoxState(name: string): ComboBoxState {
   if (!comboBoxStates.has(name))
     comboBoxStates.set(name, new ComboBoxState(name));
 
-  return comboBoxStates.get(name);
+  return comboBoxStates.get(name)!;
 }
 
 /**
@@ -482,11 +515,11 @@ function getComboBoxState(name) {
  * be received by the backend's ResourceProvider.
  * @param {String} path
  */
-function getBackendResourceAddress(path) {
+function getBackendResourceAddress(path: string): string {
   const platform =
-    window.__JUCE__.initialisationData.__juce__platform.length > 0
-      ? window.__JUCE__.initialisationData.__juce__platform[0]
-      : "";
+      window.__JUCE__.initialisationData!.__juce__platform.length > 0
+          ? window.__JUCE__.initialisationData!.__juce__platform[0]
+          : "";
 
   if (platform == "windows" || platform == "android")
     return "https://juce.backend/" + path;
@@ -495,7 +528,7 @@ function getBackendResourceAddress(path) {
     return "juce://juce.backend/" + path;
 
   console.warn(
-    "getBackendResourceAddress() called, but no JUCE native backend is detected."
+      "getBackendResourceAddress() called, but no JUCE native backend is detected."
   );
   return path;
 }
@@ -520,16 +553,20 @@ function getBackendResourceAddress(path) {
  * @param {String} controlParameterIndexAnnotation
  */
 class ControlParameterIndexUpdater {
-  constructor(controlParameterIndexAnnotation) {
+  private readonly controlParameterIndexAnnotation: string;
+  private lastElement: Element | null;
+  private lastControlParameterIndex: number | null;
+
+  constructor(controlParameterIndexAnnotation: string) {
     this.controlParameterIndexAnnotation = controlParameterIndexAnnotation;
     this.lastElement = null;
     this.lastControlParameterIndex = null;
   }
 
-  handleMouseMove(event) {
+  handleMouseMove(event: MouseEvent): void {
     const currentElement = document.elementFromPoint(
-      event.clientX,
-      event.clientY
+        event.clientX,
+        event.clientY
     );
 
     if (currentElement === this.lastElement) return;
@@ -538,29 +575,30 @@ class ControlParameterIndexUpdater {
     let controlParameterIndex = -1;
 
     if (currentElement !== null)
-      controlParameterIndex = this.#getControlParameterIndex(currentElement);
+      controlParameterIndex = this.getControlParameterIndex(currentElement);
 
     if (controlParameterIndex === this.lastControlParameterIndex) return;
     this.lastControlParameterIndex = controlParameterIndex;
 
-    window.__JUCE__.backend.emitEvent(
-      "__juce__controlParameterIndexChanged",
-      controlParameterIndex
+    window.__JUCE__.backend!.emitEvent(
+        "__juce__controlParameterIndexChanged",
+        controlParameterIndex
     );
   }
 
   //==============================================================================
-  #getControlParameterIndex(element) {
-    const isValidNonRootElement = (e) => {
+  private getControlParameterIndex(element: Element): number {
+    const isValidNonRootElement = (e: Element | null): e is Element => {
       return e !== null && e !== document.documentElement;
     };
 
     while (isValidNonRootElement(element)) {
       if (element.hasAttribute(this.controlParameterIndexAnnotation)) {
-        return element.getAttribute(this.controlParameterIndexAnnotation);
+        const attr = element.getAttribute(this.controlParameterIndexAnnotation);
+        return attr ? parseInt(attr, 10) : -1;
       }
 
-      element = element.parentElement;
+      element = element.parentElement!;
     }
 
     return -1;
@@ -575,3 +613,5 @@ export {
   getBackendResourceAddress,
   ControlParameterIndexUpdater,
 };
+
+export * from './types'
