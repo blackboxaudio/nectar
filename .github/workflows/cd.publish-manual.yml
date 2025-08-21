@@ -32,7 +32,8 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "github-actions@github.com"
           git add package.json yarn.lock
-          git commit -m "chore: increment \`@bbx-audio/nectar\` version to \`${{ github.event.inputs.version }}\`"
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          git commit -m "chore: increment \`@bbx-audio/nectar\` version to \`$NEW_VERSION\`"
           git push origin HEAD:${{ github.ref }}
 
       - name: Publish to NPM
