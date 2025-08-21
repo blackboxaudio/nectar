@@ -1,6 +1,6 @@
 {
     "name": "@bbx-audio/nectar",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "A JUCE-y module for building web-based plugin GUIs 🍯",
     "private": false,
     "license": "MIT",
@@ -14,7 +14,13 @@
     "main": "src/index.js",
     "module": "src/index.mjs",
     "type": "module",
+    "types": "types/index.d.ts",
     "files": [
-        "src"
-    ]
+        "src",
+        "types"
+    ],
+    "scripts": {
+        "build": "tsc --build tsconfig.json",
+        "prepublishOnly": "yarn build"
+    }
 }
