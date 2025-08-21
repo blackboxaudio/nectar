@@ -5,11 +5,11 @@ on: [workflow_dispatch]
 jobs:
   publish:
     runs-on: ubuntu-latest
-    env:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Publish to NPM
-        run: npm publish
+        run: |
+          npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+          npm publish
