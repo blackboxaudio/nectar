@@ -1,6 +1,6 @@
 {
     "name": "@bbx-audio/nectar",
-    "version": "0.1.5",
+    "version": "0.1.6",
     "description": "A JUCE-y module for building web-based plugin GUIs 🍯",
     "private": false,
     "license": "MIT",
