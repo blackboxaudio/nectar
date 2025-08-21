@@ -1,6 +1,6 @@
 {
     "name": "@bbx-audio/nectar",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "A JUCE-y module for building web-based plugin GUIs 🍯",
     "private": false,
     "license": "MIT",
@@ -11,16 +11,41 @@
     "publishConfig": {
         "access": "restricted"
     },
-    "main": "src/index.js",
-    "module": "src/index.mjs",
+    "main": "dist/index.js",
+    "module": "dist/index.mjs",
     "type": "module",
-    "types": "types/index.d.ts",
+    "types": "dist/index.d.ts",
     "files": [
-        "src",
-        "types"
+        "dist",
+        "src"
     ],
     "scripts": {
-        "build": "tsc --build tsconfig.json",
+        "build": "yarn clean && tsc --build tsconfig.json",
+        "clean": "rimraf dist",
+        "format": "yarn format:fix",
+        "format:check": "prettier --check \"**/*.{ts,js,json}\"",
+        "format:fix": "prettier --write \"**/*.{ts,js,json}\"",
+        "lint": "yarn lint:fix",
+        "lint:check": "eslint --cache --debug \"**/*.{ts,js}\"",
+        "lint:fix": "eslint --cache --fix \"**/*.{ts,js}\"",
+        "pre-commit": "lint-staged",
+        "prepare": "husky install",
         "prepublishOnly": "yarn build"
+    },
+    "devDependencies": {
+        "@eslint/js": "9.33.0",
+        "eslint": "9.33.0",
+        "globals": "16.3.0",
+        "husky": "8.0.3",
+        "jiti": "2.5.1",
+        "lint-staged": "16.1.5",
+        "prettier": "3.6.2",
+        "rimraf": "6.0.1",
+        "typescript": "5.9.2",
+        "typescript-eslint": "8.40.0"
+    },
+    "lint-staged": {
+        "*.{ts,js}": "yarn lint",
+        "*.{ts,js,json}": "yarn format"
     }
 }

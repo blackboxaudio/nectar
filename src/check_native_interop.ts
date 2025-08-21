@@ -35,122 +35,118 @@
 import type { IJuceGlobal } from './types'
 
 if (
-  typeof window.__JUCE__ !== "undefined" &&
-  typeof window.__JUCE__.getAndroidUserScripts !== "undefined" &&
-  typeof window.inAndroidUserScriptEval === "undefined"
+    typeof window.__JUCE__ !== 'undefined' &&
+    typeof window.__JUCE__.getAndroidUserScripts !== 'undefined' &&
+    typeof window.inAndroidUserScriptEval === 'undefined'
 ) {
-  window.inAndroidUserScriptEval = true;
-  eval(window.__JUCE__.getAndroidUserScripts());
-  delete window.inAndroidUserScriptEval;
+    window.inAndroidUserScriptEval = true
+    eval(window.__JUCE__.getAndroidUserScripts())
+    delete window.inAndroidUserScriptEval
 }
 
 {
-  if (typeof window.__JUCE__ == 'undefined') {
-    console.warn(`
+    if (typeof window.__JUCE__ == 'undefined') {
+        console.warn(`
         The 'window.__JUCE__' object is undefined.\n
         Native integration features will not work.\n
         Defining a placeholder 'window.__JUCE__' object.
     `)
 
-    window.__JUCE__ = {
-      postMessage: function (): void {}
-    } satisfies Partial<IJuceGlobal>
-  }
-
-  if (typeof window.__JUCE__.initialisationData === 'undefined') {
-    window.__JUCE__.initialisationData = {
-      __juce__platform: [],
-      __juce__functions: [],
-      __juce__registeredGlobalEventIds: [],
-      __juce__sliders: [],
-      __juce__toggles: [],
-      __juce__comboBoxes: [],
-    }
-  }
-
-  class ListenerList<T = unknown> {
-    private listeners: Map<number, (payload: T) => void>
-    private listenerId: number
-
-    constructor() {
-      this.listeners = new Map()
-      this.listenerId = 0
+        window.__JUCE__ = {
+            postMessage: function (): void {},
+        } satisfies Partial<IJuceGlobal>
     }
 
-    addListener(fn: (payload: T) => void): number {
-      const newListenerId = this.listenerId++
-      this.listeners.set(newListenerId, fn)
-      return newListenerId
+    if (typeof window.__JUCE__.initialisationData === 'undefined') {
+        window.__JUCE__.initialisationData = {
+            __juce__platform: [],
+            __juce__functions: [],
+            __juce__registeredGlobalEventIds: [],
+            __juce__sliders: [],
+            __juce__toggles: [],
+            __juce__comboBoxes: [],
+        }
     }
 
-    removeListener(id: number): void {
-      if (this.listeners.has(id)) {
-        this.listeners.delete(id)
-      }
+    class ListenerList<T = unknown> {
+        private listeners: Map<number, (payload: T) => void>
+        private listenerId: number
+
+        constructor() {
+            this.listeners = new Map()
+            this.listenerId = 0
+        }
+
+        addListener(fn: (payload: T) => void): number {
+            const newListenerId = this.listenerId++
+            this.listeners.set(newListenerId, fn)
+            return newListenerId
+        }
+
+        removeListener(id: number): void {
+            if (this.listeners.has(id)) {
+                this.listeners.delete(id)
+            }
+        }
+
+        callListeners(payload: T): void {
+            for (const [, value] of this.listeners) {
+                value(payload)
+            }
+        }
     }
 
-    callListeners(payload: T): void {
-      for (const [, value] of this.listeners) {
-        value(payload)
-      }
-    }
-  }
+    class EventListenerList {
+        private eventListeners: Map<string, ListenerList>
 
-  class EventListenerList {
-    private eventListeners: Map<string, ListenerList>
+        constructor() {
+            this.eventListeners = new Map()
+        }
 
-    constructor() {
-      this.eventListeners = new Map()
-    }
+        addEventListener(eventId: string, fn: (event: unknown) => void): [string, number] {
+            if (!this.eventListeners.has(eventId)) this.eventListeners.set(eventId, new ListenerList())
 
-    addEventListener(eventId: string, fn: (event: unknown) => void): [string, number] {
-      if (!this.eventListeners.has(eventId))
-        this.eventListeners.set(eventId, new ListenerList());
+            const id = this.eventListeners.get(eventId)!.addListener(fn)
 
-      const id = this.eventListeners.get(eventId)!.addListener(fn);
+            return [eventId, id]
+        }
 
-      return [eventId, id];
-    }
+        removeEventListener([eventId, id]: [string, number]): void {
+            if (this.eventListeners.has(eventId)) {
+                this.eventListeners.get(eventId)!.removeListener(id)
+            }
+        }
 
-    removeEventListener([eventId, id]: [string, number]): void {
-      if (this.eventListeners.has(eventId)) {
-        this.eventListeners.get(eventId)!.removeListener(id);
-      }
+        emitEvent(eventId: string, object: unknown): void {
+            if (this.eventListeners.has(eventId)) this.eventListeners.get(eventId)!.callListeners(object)
+        }
     }
 
-    emitEvent(eventId: string, object: unknown): void {
-      if (this.eventListeners.has(eventId))
-        this.eventListeners.get(eventId)!.callListeners(object);
-    }
-  }
+    class Backend {
+        private listeners: EventListenerList
 
-  class Backend {
-    private listeners: EventListenerList;
+        constructor() {
+            this.listeners = new EventListenerList()
+        }
 
-    constructor() {
-      this.listeners = new EventListenerList();
-    }
+        addEventListener(eventId: string, fn: (event: unknown) => void): [string, number] {
+            return this.listeners.addEventListener(eventId, fn)
+        }
 
-    addEventListener(eventId: string, fn: (event: unknown) => void): [string, number] {
-      return this.listeners.addEventListener(eventId, fn);
-    }
+        removeEventListener([eventId, id]: [string, number]): void {
+            this.listeners.removeEventListener([eventId, id])
+        }
 
-    removeEventListener([eventId, id]: [string, number]): void {
-      this.listeners.removeEventListener([eventId, id]);
-    }
+        emitEvent(eventId: string, object: unknown): void {
+            window.__JUCE__.postMessage(JSON.stringify({ eventId: eventId, payload: object }))
+        }
 
-    emitEvent(eventId: string, object: unknown): void {
-      window.__JUCE__.postMessage(
-          JSON.stringify({ eventId: eventId, payload: object })
-      );
+        emitByBackend(eventId: string, object: string): void {
+            this.listeners.emitEvent(eventId, JSON.parse(object))
+        }
     }
 
-    emitByBackend(eventId: string, object: string): void {
-      this.listeners.emitEvent(eventId, JSON.parse(object));
+    if (typeof window.__JUCE__.backend === 'undefined') {
+        window.__JUCE__.backend = new Backend()
     }
-  }
-
-  if (typeof window.__JUCE__.backend === 'undefined') {
-    window.__JUCE__.backend = new Backend()
-  }
 }

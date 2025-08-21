@@ -6,51 +6,51 @@ export interface ICompleteEvent {
 }
 
 export interface IValueChangedEvent {
-    eventType: string;
-    value: unknown;
+    eventType: string
+    value: unknown
 }
 
 export interface IPropertiesChangedEvent {
-    eventType: string;
-    [key: string]: unknown;
+    eventType: string
+    [key: string]: unknown
 }
 
 export interface ISliderProperties {
-    start: number;
-    end: number;
-    skew: number;
-    name: string;
-    label: string;
-    numSteps: number;
-    interval: number;
-    parameterIndex: number;
+    start: number
+    end: number
+    skew: number
+    name: string
+    label: string
+    numSteps: number
+    interval: number
+    parameterIndex: number
 }
 
 export interface IToggleProperties {
-    name: string;
-    parameterIndex: number;
+    name: string
+    parameterIndex: number
 }
 
 export interface IComboBoxProperties {
-    name: string;
-    parameterIndex: number;
-    choices: string[];
+    name: string
+    parameterIndex: number
+    choices: string[]
 }
 
 export interface IPromiseResolvers {
-    resolve: (value: unknown) => void;
-    reject: (reason?: unknown) => void;
+    resolve: (value: unknown) => void
+    reject: (reason?: unknown) => void
 }
 
 // check_native_interop
 
 export interface IJuceInitialisationData {
-    __juce__platform: string[];
-    __juce__functions: string[];
-    __juce__registeredGlobalEventIds: string[];
-    __juce__sliders: string[];
-    __juce__toggles: string[];
-    __juce__comboBoxes: string[];
+    __juce__platform: string[]
+    __juce__functions: string[]
+    __juce__registeredGlobalEventIds: string[]
+    __juce__sliders: string[]
+    __juce__toggles: string[]
+    __juce__comboBoxes: string[]
 }
 
 export interface IJuceBackend {

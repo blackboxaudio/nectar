@@ -1,0 +1,11 @@
+#!/bin/sh
+
+. "$(dirname "$0")/_/husky.sh"
+
+# If node modules aren't installed, install them first (happens after a clean)
+if [ ! -d "node_modules" ]; then
+    echo "node_modules not found. Running yarn install..."
+    yarn
+fi
+
+yarn pre-commit
