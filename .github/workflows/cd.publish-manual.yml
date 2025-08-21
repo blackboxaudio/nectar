@@ -32,7 +32,7 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "github-actions@github.com"
           git add **/package.json
-          git commit -m "chore: increment \`@bbx-audio/nectar` version to \`${{ github.event.inputs.version }}\`"
+          git commit -m "chore: increment \`@bbx-audio/nectar\` version to \`${{ github.event.inputs.version }}\`"
           git push origin HEAD:${{ github.ref }}
 
       - name: Publish to NPM
