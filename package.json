@@ -1,6 +1,6 @@
 {
     "name": "@bbx-audio/nectar",
-    "version": "0.1.7",
+    "version": "0.1.8",
     "description": "A JUCE-y module for building web-based plugin GUIs 🍯",
     "private": false,
     "license": "MIT",
@@ -12,13 +12,12 @@
         "access": "restricted"
     },
     "type": "module",
-    "main": "dist/index.js",
+    "main": "src/index.ts",
     "types": "dist/index.d.ts",
     "exports": {
         ".": {
             "types": "./dist/index.d.ts",
-            "import": "./dist/index.js",
-            "require": "./dist/index.cjs"
+            "import": "./src/index.ts"
         }
     },
     "files": [
