@@ -1,6 +1,8 @@
 import fs from 'fs'
 import path from 'path'
 
+// package.json
+
 const releaseType = process.argv[2]
 
 const packageJsonPath = path.resolve('package.json')
@@ -30,5 +32,24 @@ switch (releaseType) {
 
 packageJson.version = newVersion
 fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 4), 'utf-8')
+
+// README.md
+
+const readmePath = path.resolve('README.md')
+
+fs.readFile(readmePath, 'utf-8', (err, data) => {
+    if (err) {
+        console.error('Error reading file: ', err)
+        return
+    }
+    const updatedContent = data.replace(new RegExp(oldVersion, 'g'), newVersion)
+    fs.writeFile(readmePath, updatedContent, 'utf-8', (err) => {
+        if (err) {
+            console.error('Error writing file: ', err)
+        } else {
+            console.log('String replaced successfully.')
+        }
+    })
+})
 
 console.log(`Updated from ${oldVersion} to ${newVersion}`)
