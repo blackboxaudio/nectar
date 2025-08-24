@@ -35,9 +35,11 @@
 import type {
     IComboBoxProperties,
     ICompleteEvent,
+    IListenerList,
     IPromiseResolvers,
     IPropertiesChangedEvent,
     ISliderProperties,
+    ISliderState,
     IToggleProperties,
     IValueChangedEvent,
 } from './types.ts'
@@ -102,7 +104,7 @@ function getNativeFunction(name: string): (...args: unknown[]) => Promise<unknow
 
 //==============================================================================
 
-class ListenerList<T = unknown> {
+class ListenerList<T = unknown> implements IListenerList<T> {
     private listeners: Map<number, (payload: T) => void>
     private listenerId: number
 
@@ -144,7 +146,7 @@ const SliderControl_sliderDragEndedEventId = 'sliderDragEnded'
  *
  * @param {String} name
  */
-class SliderState {
+class SliderState implements ISliderState {
     public readonly name: string
     private readonly identifier: string
     private scaledValue: number

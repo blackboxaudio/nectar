@@ -5,6 +5,12 @@ export interface ICompleteEvent {
     result: unknown
 }
 
+export interface IListenerList<T = unknown> {
+    addListener(fn: (payload: T) => void): number
+    removeListener(id: number): void
+    callListeners(payload: T): void
+}
+
 export interface IValueChangedEvent {
     eventType: string
     value: unknown
@@ -24,6 +30,19 @@ export interface ISliderProperties {
     numSteps: number
     interval: number
     parameterIndex: number
+}
+
+export interface ISliderState {
+    readonly name: string
+    readonly properties: ISliderProperties
+    readonly valueChangedEvent: IListenerList<void>
+    readonly propertiesChangedEvent: IListenerList<void>
+
+    setNormalisedValue(newValue: number): void
+    sliderDragStarted(): void
+    sliderDragEnded(): void
+    getScaledValue(): number
+    getNormalisedValue(): number
 }
 
 export interface IToggleProperties {
