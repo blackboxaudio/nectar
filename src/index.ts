@@ -83,11 +83,11 @@ const promiseHandler = new PromiseHandler()
  *
  * @param {String} name
  */
-function getNativeFunction(name: string): (...args: unknown[]) => Promise<unknown> {
+function getNativeFunction<T = unknown>(name: string): (...args: unknown[]) => Promise<T> {
     if (!window.__JUCE__.initialisationData!.__juce__functions.includes(name))
         console.warn(`Creating native function binding for '${name}', which is unknown to the backend`)
 
-    const f = function (...args: unknown[]): Promise<unknown> {
+    const f = function (...args: unknown[]): Promise<T> {
         const [promiseId, result] = promiseHandler.createPromise()
 
         window.__JUCE__.backend!.emitEvent('__juce__invoke', {
@@ -96,7 +96,7 @@ function getNativeFunction(name: string): (...args: unknown[]) => Promise<unknow
             resultId: promiseId,
         })
 
-        return result
+        return result as Promise<T>
     }
 
     return f
