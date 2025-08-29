@@ -89,6 +89,7 @@ export interface IJuceGlobal {
 declare global {
     interface Window {
         __JUCE__: IJuceGlobal
+        initializeParameters: (jsonString: string) => void
         inAndroidUserScriptEval?: boolean
     }
 }
