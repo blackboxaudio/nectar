@@ -34,6 +34,7 @@
 
 import type {
     IComboBoxProperties,
+    IComboBoxState,
     ICompleteEvent,
     IListenerList,
     IPromiseResolvers,
@@ -400,7 +401,7 @@ function getToggleState(name: string): ToggleState {
  *
  * @param {String} name
  */
-class ComboBoxState {
+class ComboBoxState implements IComboBoxState {
     public readonly name: string
     private readonly identifier: string
     private value: number

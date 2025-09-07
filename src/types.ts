@@ -66,6 +66,16 @@ export interface IComboBoxProperties {
     choices: string[]
 }
 
+export interface IComboBoxState {
+    readonly name: string
+    readonly properties: IComboBoxProperties
+    readonly valueChangedEvent: IListenerList<void>
+    readonly propertiesChangedEvent: IListenerList<void>
+
+    getChoiceIndex(): number
+    setChoiceIndex(index: number): void
+}
+
 export interface IPromiseResolvers {
     resolve: (value: unknown) => void
     reject: (reason?: unknown) => void
