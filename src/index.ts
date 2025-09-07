@@ -41,6 +41,7 @@ import type {
     ISliderProperties,
     ISliderState,
     IToggleProperties,
+    IToggleState,
     IValueChangedEvent,
 } from './types.ts'
 
@@ -310,7 +311,7 @@ function getSliderState(name: string): SliderState {
  *
  * @param {String} name
  */
-class ToggleState {
+class ToggleState implements IToggleState {
     public readonly name: string
     private readonly identifier: string
     private value: boolean

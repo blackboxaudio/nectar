@@ -50,6 +50,16 @@ export interface IToggleProperties {
     parameterIndex: number
 }
 
+export interface IToggleState {
+    readonly name: string
+    readonly properties: IToggleProperties
+    readonly valueChangedEvent: IListenerList<void>
+    readonly propertiesChangedEvent: IListenerList<void>
+
+    getValue(): boolean
+    setValue(newValue: boolean): void
+}
+
 export interface IComboBoxProperties {
     name: string
     parameterIndex: number
