@@ -1,6 +1,6 @@
 {
     "name": "@bbx-audio/nectar",
-    "version": "0.1.17",
+    "version": "0.1.18",
     "description": "JUCE-y module for building web-based plugin GUIs 🧃",
     "private": false,
     "license": "MIT",
@@ -9,7 +9,7 @@
         "url": "git+https://github.com/blackboxaudio/nectar.git"
     },
     "publishConfig": {
-        "access": "restricted"
+        "access": "public"
     },
     "type": "module",
     "main": "src/index.ts",
