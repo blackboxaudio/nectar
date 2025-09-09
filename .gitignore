@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 types
 dist
+docs
 dist-ssr
 *.local
 
