@@ -14,9 +14,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Detect Changed Packages
-        id: package-changes
+      - name: Detect Package Change
+        id: package-change
         run: |
           HAS_CHANGED=false
           CURRENT_VERSION=$(node -p "require('./package.json').version")
@@ -28,13 +29,59 @@ jobs:
           fi
 
           echo "has_changed=$HAS_CHANGED" >> $GITHUB_OUTPUT
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "previous_version=$PREVIOUS_VERSION" >> $GITHUB_OUTPUT
 
       - name: Setup
-        if: steps.package-changes.outputs.has_changed == 'true'
+        if: steps.package-change.outputs.has_changed == 'true'
         uses: ./.github/actions
 
+      - name: Create Git Tag
+        if: steps.package-change.outputs.has_changed == 'true'
+        run: |
+          VERSION="v${{ steps.package-change.outputs.current_version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$VERSION" -m "Release \`$VERSION\`"
+          git push origin "$VERSION"
+
+      - name: Generate Release Notes
+        if: steps.package-change.outputs.has_changed == 'true'
+        id: release-notes
+        run: |
+          # Generate release notes from commits between versions
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          if [ -n "$PREVIOUS_TAG" ]; then
+          NOTES=$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          else
+          NOTES=$(git log --pretty=format:"- %s (%h)" --no-merges -10)
+          fi
+          
+          # Save multiline output
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        if: steps.package-change.outputs.has_changed == 'true'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.package-change.outputs.current_version }}
+          release_name: Release v${{ steps.package-change.outputs.current_version }}
+          body: |
+            ## Changes in v${{ steps.package-change.outputs.current_version }}
+            
+            ${{ steps.release-notes.outputs.notes }}
+            
+            **Full Changelog**: https://github.com/${{ github.repository }}/compare/v${{ steps.package-change.outputs.previous_version }}...v${{ steps.package-change.outputs.current_version }}
+          draft: true
+          prerelease: false
+
+
       - name: Publish to NPM
-        if: steps.package-changes.outputs.has_changed == 'true'
+        if: steps.package-change.outputs.has_changed == 'true'
         run: |
           npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
           npm publish
