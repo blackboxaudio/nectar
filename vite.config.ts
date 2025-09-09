@@ -27,6 +27,7 @@ export default defineConfig(({}) => ({
             entry: {
                 index: resolve(__dirname, './src/index.ts'),
                 error: resolve(__dirname, './src/error/index.ts'),
+                event: resolve(__dirname, './src/event/index.ts'),
                 juce: resolve(__dirname, './src/juce/index.ts'),
                 math: resolve(__dirname, './src/math/index.ts'),
                 parameter: resolve(__dirname, './src/parameter/index.ts'),

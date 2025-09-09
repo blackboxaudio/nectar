@@ -1,4 +1,5 @@
 export * from './error'
+export * from './event'
 export * from './juce'
 export * from './math'
 export * from './parameter'
