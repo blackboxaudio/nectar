@@ -6,8 +6,22 @@ import type { Scale } from '$lib/math'
  * system that parameters use.
  */
 export enum ParameterChangeSource {
+    /**
+     * Indicates the parameter was changed from the backend source,
+     * i.e. the host or JUCE.
+     */
     Backend,
+
+    /**
+     * Indicates the parameter was changed from a frontend source,
+     * i.e. user input.
+     */
     Frontend,
+
+    /**
+     * Indicates the parameter was changed from an internal source,
+     * i.e. internal frontend logic.
+     */
     Internal,
 }
 
@@ -16,8 +30,20 @@ export enum ParameterChangeSource {
  * data type and how to communicate with the JUCE backend.
  */
 export enum ParameterType {
+    /**
+     * A value representing true or false.
+     */
     Boolean = 'boolean',
+
+    /**
+     * A value representing a selection among
+     * multiple choices, indicated by an index value.
+     */
     Choice = 'choice',
+
+    /**
+     * A value representing a floating-point number.
+     */
     Float = 'float',
 }
 
