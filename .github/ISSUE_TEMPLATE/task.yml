@@ -1,0 +1,29 @@
+name: ️🛠 Task
+description: Create a new development task
+title: '️🛠 - '
+
+body:
+  - type: markdown
+    attributes:
+      value: '## Creating a Task'
+
+  - type: markdown
+    attributes:
+        value: |
+          This form should be used by only official maintainers to create new development tasks. If applicable, please assign to a milestone and/or task management project. 
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please describe the task that needs to be completed.
+    validations:
+      required: true
+
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Requirements
+      description: Please create a list of requirements necessary to complete this task.
+    validations:
+      required: true
