@@ -32,7 +32,7 @@
   ==============================================================================
 */
 
-import type { IJuceGlobal } from './types'
+import type { IJuceGlobal } from './juce.types'
 
 if (
     typeof window.__JUCE__ !== 'undefined' &&
