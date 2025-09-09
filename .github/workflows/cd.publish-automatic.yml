@@ -91,14 +91,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ steps.package-change.outputs.current_version }}
-          release_name: Release v${{ steps.package-change.outputs.current_version }}
+          release_name: v${{ steps.package-change.outputs.current_version }}
           body: |
             ## Changes in v${{ steps.package-change.outputs.current_version }}
             
             ${{ steps.release-notes.outputs.notes }}
             
             **Full Changelog**: https://github.com/${{ github.repository }}/compare/v${{ steps.package-change.outputs.previous_version }}...v${{ steps.package-change.outputs.current_version }}
-          draft: true
+          draft: false
           prerelease: false
 
 
