@@ -24,6 +24,8 @@ yarn add @bbx-audio/nectar
 
 ## Usage
 
+Please refer to the [documentation](https://nectar.bbx-audio.com) for a comprehensive overview of this library.
+
 ### Initialization
 
 The [`juce`](https://github.com/blackboxaudio/nectar/tree/develop/src/juce) module contains code that needs to be 
