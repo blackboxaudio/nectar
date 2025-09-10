@@ -40,7 +40,7 @@ import '@bbx-audio/nectar/init'
 
 ### Errors
 
-The `error` module contains the `Result` type, which generally helps improve error handling.
+The [`error`](https://github.com/blackboxaudio/nectar/tree/develop/src/error) module contains the `Result` type, which generally helps improve error handling.
 
 It does this by wrapping the result of a function call in a structure that either contains
 the result as expected or the error that occurred during the function's execution.
@@ -66,7 +66,7 @@ if (error) {
 
 ### Events
 
-The `event` module contains a class that allows you to register listener callbacks that are executed when global
+The [`event`](https://github.com/blackboxaudio/nectar/tree/develop/src/event) module contains a class that allows you to register listener callbacks that are executed when global
 window and DOM events are emitted. This has two main benefits:
 - Increased performance by limiting the number of actual event listeners to one instead of several since you do not have to add the listeners in each component.
 - Improved developer experience by making it easier to subscribe and manage subscriptions to events.
@@ -96,7 +96,7 @@ unsubscribeToEnterKey()
 
 ### Parameters
 
-The `parameter` module contains the classes and utilities to properly setup bidirectional communication with the JUCE backend.
+The [`parameter`](https://github.com/blackboxaudio/nectar/tree/develop/src/parameter) module contains the classes and utilities to properly setup bidirectional communication with the JUCE backend.
 
 #### Parameter Types
 
@@ -142,7 +142,7 @@ const ToggleButton = ({ parameter }: IToggleButtonProps) => {
 ```
 
 Svelte:
-```sveltehtml
+```svelte
 <script lang="ts">
     import { IBooleanParameter, ParameterChangeSource } from '@bbx-audio/nectar'
     
