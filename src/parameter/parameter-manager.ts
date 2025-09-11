@@ -8,6 +8,7 @@ import {
     type Parameter,
     ParameterChangeSource,
     type ParameterConfig,
+    type ParameterConfigFromType,
     type ParameterFromConfig,
     type ParameterFromType,
     ParameterType,
@@ -29,21 +30,21 @@ export class ParameterManager implements IParameterManager {
         }
     }
 
-    registerParameter<C extends ParameterConfig>(config: C): ParameterFromConfig<C> {
-        const parameter = this.createParameter<C>(config)
+    registerParameter<T extends ParameterType>(config: ParameterConfigFromType<T>): ParameterFromType<T> {
+        const parameter = this.createParameter<T>(config)
         this._parameters[config.id] = parameter
         this.setupBackendRelay(parameter)
         return parameter
     }
 
-    private createParameter<C extends ParameterConfig>(config: C): ParameterFromConfig<C> {
+    private createParameter<T extends ParameterType>(config: ParameterConfigFromType<T>): ParameterFromType<T> {
         switch (config.type) {
             case ParameterType.Boolean:
-                return new BooleanParameter(config as IBooleanParameterConfig) as unknown as ParameterFromConfig<C>
+                return new BooleanParameter(config as IBooleanParameterConfig) as unknown as ParameterFromType<T>
             case ParameterType.Choice:
-                return new ChoiceParameter(config as IChoiceParameterConfig) as unknown as ParameterFromConfig<C>
+                return new ChoiceParameter(config as IChoiceParameterConfig) as unknown as ParameterFromType<T>
             case ParameterType.Float:
-                return new FloatParameter(config as IFloatParameterConfig) as unknown as ParameterFromConfig<C>
+                return new FloatParameter(config as IFloatParameterConfig) as unknown as ParameterFromType<T>
             default:
                 throw new Error(`Unsupported parameter type: ${(config as { type: string }).type}`)
         }

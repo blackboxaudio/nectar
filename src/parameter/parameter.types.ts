@@ -273,6 +273,14 @@ export interface IFloatParameterConfig extends IBaseParameterConfig {
  */
 export type ParameterConfig = IBooleanParameterConfig | IChoiceParameterConfig | IFloatParameterConfig
 
+export type ParameterConfigFromType<T extends ParameterType> = T extends ParameterType.Boolean
+    ? IBooleanParameterConfig
+    : T extends ParameterType.Choice
+      ? IChoiceParameterConfig
+      : T extends ParameterType.Float
+        ? IFloatParameterConfig
+        : never
+
 /**
  * Utility type for deriving the specific parameter object from the
  * parameter config.
@@ -311,7 +319,7 @@ export interface IParameterManager {
      * Sets up the workings for a single parameter, creating the object
      * and wiring up bidirectional communication with the backend.
      */
-    registerParameter<C extends ParameterConfig>(config: C): ParameterFromConfig<C>
+    registerParameter<T extends ParameterType>(config: ParameterConfigFromType<T>): ParameterFromType<T>
 
     /**
      * Retrieve the parameter object with the given ID.

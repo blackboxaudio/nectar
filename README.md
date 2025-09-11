@@ -1,6 +1,6 @@
 # `@bbx-audio/nectar`
 
-[![@bbx-audio/nectar: v0.1.22](https://img.shields.io/badge/npm-v0.1.22-blue.svg)](https://github.com/blackboxaudio/nectar)
+[![@bbx-audio/nectar: v0.1.23](https://img.shields.io/badge/npm-v0.1.23-blue.svg)](https://github.com/blackboxaudio/nectar)
 [![Build](https://github.com/blackboxaudio/nectar/actions/workflows/ci.build.yml/badge.svg)](https://github.com/blackboxaudio/nectar/actions/workflows/ci.build.yml)
 
 > Collection of JUCE-y modules for building web-based plugin GUIs 🧃
@@ -182,13 +182,13 @@ You can register parameters individually or call a special method that loads par
 configuration information to the frontend in JSON format.
 
 ```tsx
-import { IBooleanParameterConfig, ParameterManager, ParameterType } from '@bbx-audio/nectar'
+import { ParameterManager, ParameterType } from '@bbx-audio/nectar'
 
 // Create the parameter manager
 const manager = new ParameterManager()
 
 // Register a simple boolean parameter for toggling mono on and off
-const monoParameter = manager.registerParameter<IBooleanParameterConfig>({
+const monoParameter = manager.registerParameter<ParameterType.Boolean>({
     id: 'MONO',
     name: 'Mono',
     type: ParameterType.Boolean,
