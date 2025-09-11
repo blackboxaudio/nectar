@@ -78,6 +78,9 @@ export interface IParameter<T extends ParameterType> {
      */
     setValue(value: ParameterValueFromType<T>, source?: ParameterChangeSource): void
 
+    /**
+     * Resets the internal value of this parameter to its default.
+     */
     resetValue(source?: ParameterChangeSource): void
 }
 
@@ -266,6 +269,10 @@ export interface IFloatParameterConfig extends IBaseParameterConfig {
  */
 export type ParameterConfig = IBooleanParameterConfig | IChoiceParameterConfig | IFloatParameterConfig
 
+/**
+ * Utility type for deriving the specific parameter configuration object
+ * from the parameter type.
+ */
 export type ParameterConfigFromType<T extends ParameterType> = T extends ParameterType.Boolean
     ? IBooleanParameterConfig
     : T extends ParameterType.Choice
@@ -298,6 +305,10 @@ export type ParameterFromType<T extends ParameterType> = T extends ParameterType
         ? IFloatParameter
         : never
 
+/**
+ * Utility type for deriving the specific parameter value's primitive
+ * type.
+ */
 export type ParameterValueFromType<T extends ParameterType> = T extends ParameterType.Boolean
     ? boolean
     : T extends ParameterType.Choice
@@ -342,6 +353,9 @@ export interface IParameterManager {
      */
     removeParameter(id: string): void
 
+    /**
+     * Resets all parameters to their default values.
+     */
     resetParameters(source?: ParameterChangeSource): void
 
     /**
