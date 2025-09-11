@@ -1,4 +1,4 @@
-import { ParameterChangeSource, type IChoiceParameterConfig } from '../parameter.types.ts'
+import { type IChoiceParameterConfig, ParameterChangeSource, ParameterType } from '../parameter.types.ts'
 import { BaseParameter } from './base.parameter.ts'
 
 /**
@@ -6,7 +6,7 @@ import { BaseParameter } from './base.parameter.ts'
  * functionality to set the choice by a particular value if it exists among the choices
  * from the original configuration.
  */
-export class ChoiceParameter extends BaseParameter<number> {
+export class ChoiceParameter extends BaseParameter<ParameterType.Choice> {
     private _choiceIndex: number
 
     constructor(config: IChoiceParameterConfig) {
@@ -24,6 +24,10 @@ export class ChoiceParameter extends BaseParameter<number> {
             this._choiceIndex = index
             this.notifyListeners(index, source)
         }
+    }
+
+    resetValue(source = ParameterChangeSource.Frontend): void {
+        this.setValue(this.config.defaultValueIndex, source)
     }
 
     setChoiceByValue(value: number | string, source = ParameterChangeSource.Frontend): void {

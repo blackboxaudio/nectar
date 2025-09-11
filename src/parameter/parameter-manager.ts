@@ -159,6 +159,12 @@ export class ParameterManager implements IParameterManager {
         }
     }
 
+    resetParameters(source?: ParameterChangeSource): void {
+        for (const parameter of Object.values(this._parameters)) {
+            parameter.resetValue(source ?? ParameterChangeSource.Frontend)
+        }
+    }
+
     cleanup(): void {
         this._backendCleanups.forEach((cleanup) => cleanup())
         this._backendCleanups.clear()

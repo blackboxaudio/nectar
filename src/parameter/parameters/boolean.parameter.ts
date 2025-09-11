@@ -1,11 +1,11 @@
-import { ParameterChangeSource, type IBooleanParameterConfig } from '../parameter.types.ts'
+import { ParameterChangeSource, type IBooleanParameterConfig, ParameterType } from '../parameter.types.ts'
 import { BaseParameter } from './base.parameter.ts'
 
 /**
  * A boolean-based parameter object, exposing the additional
  * functionality to toggle the internal value of the parameter.
  */
-export class BooleanParameter extends BaseParameter<boolean> {
+export class BooleanParameter extends BaseParameter<ParameterType.Boolean> {
     private _value: boolean
 
     constructor(config: IBooleanParameterConfig) {
@@ -23,6 +23,10 @@ export class BooleanParameter extends BaseParameter<boolean> {
             this._value = bool
             this.notifyListeners(bool, source)
         }
+    }
+
+    resetValue(source = ParameterChangeSource.Frontend): void {
+        this.setValue(this.config.defaultValue, source)
     }
 
     toggle(source = ParameterChangeSource.Frontend): void {

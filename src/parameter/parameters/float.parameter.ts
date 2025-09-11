@@ -1,5 +1,5 @@
 import type { Scale } from '$lib/math'
-import { ParameterChangeSource, type IFloatParameterConfig } from '../parameter.types.ts'
+import { ParameterChangeSource, type IFloatParameterConfig, ParameterType } from '../parameter.types.ts'
 import { BaseParameter } from './base.parameter.ts'
 
 /**
@@ -7,7 +7,7 @@ import { BaseParameter } from './base.parameter.ts'
  * for internal calculations and a display value for showing the value to
  * the user in a human-readable way.
  */
-export class FloatParameter extends BaseParameter<number> {
+export class FloatParameter extends BaseParameter<ParameterType.Float> {
     private _normalizedValue: number
 
     constructor(config: IFloatParameterConfig) {
@@ -23,6 +23,10 @@ export class FloatParameter extends BaseParameter<number> {
 
     setValue(value: number | boolean, source = ParameterChangeSource.Frontend): void {
         this.setNormalizedValue(value as number, true, source)
+    }
+
+    resetValue(source = ParameterChangeSource.Frontend): void {
+        this.setValue(this.displayToNormalized(this.config.defaultValue), source)
     }
 
     get normalizedValue() {

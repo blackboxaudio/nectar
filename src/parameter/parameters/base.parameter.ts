@@ -1,36 +1,39 @@
 import {
     type IParameter,
     ParameterChangeSource,
-    type ParameterConfig,
+    type ParameterConfigFromType,
     type ParameterListener,
+    ParameterType,
+    type ParameterValueFromType,
 } from '../parameter.types.ts'
 
 /**
  * Base class for implementing the functionality required by all parameters to bidirectionally
  * communicate with the backend and frontend.
  */
-export abstract class BaseParameter<ValueType extends number | boolean> implements IParameter<ValueType> {
-    protected _listeners = new Set<ParameterListener<ValueType>>()
+export abstract class BaseParameter<T extends ParameterType> implements IParameter<T> {
+    protected _listeners = new Set<ParameterListener<ParameterValueFromType<T>>>()
 
-    readonly config: ParameterConfig
+    readonly config: ParameterConfigFromType<T>
 
-    constructor(config: ParameterConfig) {
+    constructor(config: ParameterConfigFromType<T>) {
         this.config = config
     }
 
-    get type() {
-        return this.config.type
+    get type(): T {
+        return this.config.type as T
     }
 
-    subscribe(listener: ParameterListener<ValueType>): () => void {
+    subscribe(listener: ParameterListener<ParameterValueFromType<T>>): () => void {
         this._listeners.add(listener)
         return () => this._listeners.delete(listener)
     }
 
-    protected notifyListeners(value: ValueType, source: ParameterChangeSource): void {
+    protected notifyListeners(value: ParameterValueFromType<T>, source: ParameterChangeSource): void {
         this._listeners.forEach((listener) => listener(value, source))
     }
 
-    abstract getValue(): ValueType
-    abstract setValue(value: ValueType, source?: ParameterChangeSource): void
+    abstract getValue(): ParameterValueFromType<T>
+    abstract setValue(value: ParameterValueFromType<T>, source?: ParameterChangeSource): void
+    abstract resetValue(source?: ParameterChangeSource): void
 }

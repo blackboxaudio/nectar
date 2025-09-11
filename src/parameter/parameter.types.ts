@@ -51,42 +51,41 @@ export enum ParameterType {
  * Generic type definition for a parameter object, containing the necessities
  * for getting and setting values as well as listening for changes.
  */
-export interface IParameter<ValueType extends number | boolean> {
+export interface IParameter<T extends ParameterType> {
     /**
      * The particular parameter type of this parameter.
      */
-    readonly type: ParameterType
+    readonly type: T
 
     /**
      * The particular configuration of this parameter.
      */
-    readonly config: ParameterConfig
+    readonly config: ParameterConfigFromType<T>
 
     /**
      * Registers a listener callback that executes when changes occur to this parameter's
      * internal value.
      */
-    subscribe(listener: ParameterListener<ValueType>): () => void
+    subscribe(listener: ParameterListener<ParameterValueFromType<T>>): () => void
 
     /**
      * Gets the current internal value of this parameter.
      */
-    getValue(): ValueType
+    getValue(): ParameterValueFromType<T>
 
     /**
      * Sets the internal value of this parameter.
      */
-    setValue(value: ValueType, source?: ParameterChangeSource): void
+    setValue(value: ParameterValueFromType<T>, source?: ParameterChangeSource): void
+
+    resetValue(source?: ParameterChangeSource): void
 }
 
 /**
  * Describes a boolean-based parameter object, exposing the additional
  * functionality to toggle the internal value of the parameter.
  */
-export interface IBooleanParameter extends IParameter<boolean> {
-    readonly type: ParameterType.Boolean
-    readonly config: IBooleanParameterConfig
-
+export interface IBooleanParameter extends IParameter<ParameterType.Boolean> {
     toggle(source?: ParameterChangeSource): void
 }
 
@@ -95,10 +94,7 @@ export interface IBooleanParameter extends IParameter<boolean> {
  * functionality to set the choice by a particular value if it exists among the choices
  * from the original configuration.
  */
-export interface IChoiceParameter extends IParameter<number> {
-    readonly type: ParameterType.Choice
-    readonly config: IChoiceParameterConfig
-
+export interface IChoiceParameter extends IParameter<ParameterType.Choice> {
     /**
      * Sets the choice index of this parameter by a given value. If the value does NOT
      * exist in the array of choices in the original configuration, then nothing will occur.
@@ -111,10 +107,7 @@ export interface IChoiceParameter extends IParameter<number> {
  * for internal calculations and a display value for showing the value to
  * the user in a human-readable way.
  */
-export interface IFloatParameter extends IParameter<number> {
-    readonly type: ParameterType.Float
-    readonly config: IFloatParameterConfig
-
+export interface IFloatParameter extends IParameter<ParameterType.Float> {
     /**
      * The internal state of this parameter represented as a normalized value.
      */
@@ -305,6 +298,14 @@ export type ParameterFromType<T extends ParameterType> = T extends ParameterType
         ? IFloatParameter
         : never
 
+export type ParameterValueFromType<T extends ParameterType> = T extends ParameterType.Boolean
+    ? boolean
+    : T extends ParameterType.Choice
+      ? number
+      : T extends ParameterType.Float
+        ? number
+        : never
+
 /**
  * Describes functionality to manage our parameters in various aspects, including
  * initialization, cleanup, and simple getter methods.
@@ -340,6 +341,8 @@ export interface IParameterManager {
      * Removes the parameter with the given ID if it exists.
      */
     removeParameter(id: string): void
+
+    resetParameters(source?: ParameterChangeSource): void
 
     /**
      * Removes all event subscribers and ensures no dangling listeners, etc.
