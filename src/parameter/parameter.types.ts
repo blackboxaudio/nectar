@@ -313,7 +313,7 @@ export interface IParameterManager {
     /**
      * Loads and initializes parameters from data embedded in the backend.
      */
-    initializeParameters(): void
+    initializeParameters(): Promise<void>
 
     /**
      * Sets up the workings for a single parameter, creating the object
