@@ -104,6 +104,18 @@ function getNativeFunction<T = unknown>(name: string): (...args: unknown[]) => P
     return f
 }
 
+/**
+ * Directly calls native functions in the backend.
+ *
+ * CAUTION: You MUST define these callbacks when initializing
+ * your juce::WebBrowserComponent code in the backend.
+ */
+class NativeFunctionAdapter {
+    static getParametersJsonData(): Promise<string> {
+        return getNativeFunction<string>('getParametersJsonData')()
+    }
+}
+
 //==============================================================================
 
 class ListenerList<T = unknown> implements IListenerList<T> {
@@ -580,6 +592,7 @@ class ControlParameterIndexUpdater {
 
 export {
     getNativeFunction,
+    NativeFunctionAdapter,
     getSliderState,
     getToggleState,
     getComboBoxState,

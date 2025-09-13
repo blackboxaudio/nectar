@@ -324,6 +324,9 @@ export type ParameterValueFromType<T extends ParameterType> = T extends Paramete
 export interface IParameterManager {
     /**
      * Loads and initializes parameters from data embedded in the backend.
+     *
+     * CAUTION: You MUST define the "getParametersJsonData" native function
+     * in the backend code that initializes the juce::WebBrowserComponent.
      */
     initializeParameters(): Promise<void>
 

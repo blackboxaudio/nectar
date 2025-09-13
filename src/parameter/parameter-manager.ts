@@ -1,4 +1,4 @@
-import { getComboBoxState, getNativeFunction, getSliderState, getToggleState } from '$lib/juce'
+import { getComboBoxState, getSliderState, getToggleState, NativeFunctionAdapter } from '$lib/juce'
 import { BooleanParameter, ChoiceParameter, FloatParameter } from './parameters'
 import {
     type IBooleanParameterConfig,
@@ -23,7 +23,7 @@ export class ParameterManager implements IParameterManager {
     private _backendCleanups = new Map<string, () => void>()
 
     async initializeParameters(): Promise<void> {
-        const jsonString = await getNativeFunction<string>('getParametersJsonData')()
+        const jsonString = await NativeFunctionAdapter.getParametersJsonData()
         const { parameters } = JSON.parse(jsonString) as { parameters: ParameterConfig[] }
         for (const config of parameters) {
             this.registerParameter(config)
