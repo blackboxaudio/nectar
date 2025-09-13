@@ -106,8 +106,21 @@ export interface IJuceGlobal {
     getAndroidUserScripts?: () => string
 }
 
+export interface IBbxGlobal {
+    updateVuData(data: IVuData): void
+}
+
+export interface IVuData {
+    leftLevel: number
+    rightLevel: number
+    leftPeak: number
+    rightPeak: number
+    timestamp: number
+}
+
 declare global {
     interface Window {
+        __BBX__: IBbxGlobal
         __JUCE__: IJuceGlobal
         initializeParameters: (jsonString: string) => void
         inAndroidUserScriptEval?: boolean
