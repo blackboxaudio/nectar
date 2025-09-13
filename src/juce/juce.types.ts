@@ -110,6 +110,9 @@ export interface IBbxGlobal {
     updateVuData(data: IVuData): void
 }
 
+/**
+ * Represents data for a volume unit (VU) meter.
+ */
 export interface IVuData {
     leftLevel: number
     rightLevel: number
