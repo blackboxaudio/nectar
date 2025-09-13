@@ -1,6 +1,6 @@
 # `@bbx-audio/nectar`
 
-[![@bbx-audio/nectar: v0.1.26](https://img.shields.io/badge/npm-v0.1.26-blue.svg)](https://github.com/blackboxaudio/nectar)
+[![@bbx-audio/nectar: v0.1.27](https://img.shields.io/badge/npm-v0.1.27-blue.svg)](https://github.com/blackboxaudio/nectar)
 [![Build](https://github.com/blackboxaudio/nectar/actions/workflows/ci.build.yml/badge.svg)](https://github.com/blackboxaudio/nectar/actions/workflows/ci.build.yml)
 
 > Collection of JUCE-y modules for building web-based plugin GUIs 🧃
