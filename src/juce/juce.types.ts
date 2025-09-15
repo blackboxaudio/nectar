@@ -106,18 +106,110 @@ export interface IJuceGlobal {
     getAndroidUserScripts?: () => string
 }
 
+/**
+ * Describes global methods designed to be invoked by the plugin's C++ backend
+ * at a rate of 60 FPS.
+ */
 export interface IBbxGlobal {
+    /**
+     * Updates the sample data available in the frontend.
+     */
+    updateSampleData(data: ISampleData): void
+
+    /**
+     * Updates the spectrum data available in the frontend.
+     */
+    updateSpectrumData(data: ISpectrumData): void
+
+    /**
+     * Updates the volume unit (VU) data available in the frontend.
+     */
     updateVuData(data: IVuData): void
+}
+
+/**
+ * Represents per-channel audio sample data.
+ */
+export interface ISampleData {
+    /**
+     * The individual sample buffers for each channel in the audio signal.
+     */
+    channels: Float32Array[]
+
+    /**
+     * The number of samples processed by the plugin per-second.
+     */
+    sampleRate: number
+
+    /**
+     * The number of channels in the audio signal.
+     */
+    numChannels: number
+
+    /**
+     * The number of samples in the audio signal (per-channel, NOT total).
+     */
+    numSamples: number
+
+    /**
+     * The UNIX timestamp of when this sample data was generated.
+     */
+    timestamp: number
+}
+
+/**
+ * Represents frequency spectrum data of an audio signal, summed
+ * down to mono if not originally in mono.
+ */
+export interface ISpectrumData {
+    /**
+     * The array of levels for each frequency bin in the FFT.
+     */
+    magnitudes: Float32Array
+
+    /**
+     * The number of samples processed by the plugin per-second.
+     */
+    sampleRate: number
+
+    /**
+     * The number of samples used to process the FFT.
+     */
+    fftSize: number
+
+    /**
+     * The UNIX timestamp of when this spectrum data was generated.
+     */
+    timestamp: number
 }
 
 /**
  * Represents data for a volume unit (VU) meter.
  */
 export interface IVuData {
+    /**
+     * The (RMS) gain of the left channel.
+     */
     leftLevel: number
+
+    /**
+     * The (RMS) gain of the right channel.
+     */
     rightLevel: number
+
+    /**
+     * The (peak) gain of the left channel.
+     */
     leftPeak: number
+
+    /**
+     * The (peak) gain of the right channel.
+     */
     rightPeak: number
+
+    /**
+     * The UNIX timestamp of when this VU data was generated.
+     */
     timestamp: number
 }
 

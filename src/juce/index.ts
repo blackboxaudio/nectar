@@ -590,6 +590,7 @@ class ControlParameterIndexUpdater {
     }
 }
 
+export * from './juce.types'
 export {
     getNativeFunction,
     NativeFunctionAdapter,
