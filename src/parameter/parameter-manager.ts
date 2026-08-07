@@ -1,10 +1,11 @@
-import { getComboBoxState, getSliderState, getToggleState, NativeFunctionAdapter } from '$lib/juce'
+import { getComboBoxState, getSliderState, getToggleState, type IJuceGlobal, NativeFunctionAdapter } from '$lib/juce'
 import { BooleanParameter, ChoiceParameter, FloatParameter } from './parameters'
 import {
     type IBooleanParameterConfig,
     type IChoiceParameterConfig,
     type IFloatParameterConfig,
     type IParameterManager,
+    type IParameterManagerOptions,
     type Parameter,
     ParameterChangeSource,
     type ParameterConfig,
@@ -21,8 +22,35 @@ import {
 export class ParameterManager implements IParameterManager {
     private _parameters: Record<string, Parameter> = {}
     private _backendCleanups = new Map<string, () => void>()
+    private readonly _backendEnabled: boolean
+
+    constructor(options?: IParameterManagerOptions) {
+        const backend = options?.backend ?? 'auto'
+        this._backendEnabled = backend === 'juce' || (backend === 'auto' && ParameterManager.isJuceBackendPresent())
+    }
+
+    /**
+     * Distinguishes a real JUCE WebView host from the placeholder interop object that
+     * gets installed when no native backend exists. A genuine host always reports its
+     * platform in the initialisation data, whereas the placeholder leaves it empty.
+     */
+    private static isJuceBackendPresent(): boolean {
+        if (typeof window === 'undefined') {
+            return false
+        }
+
+        const juce = window.__JUCE__ as IJuceGlobal | undefined
+        return (juce?.initialisationData?.__juce__platform?.length ?? 0) > 0
+    }
 
     async initializeParameters(): Promise<void> {
+        if (!this._backendEnabled) {
+            throw new Error(
+                'ParameterManager.initializeParameters() requires a JUCE backend, which is not available. ' +
+                    'Register parameters directly with registerParameter() instead.'
+            )
+        }
+
         const jsonString = await NativeFunctionAdapter.getParametersJsonData()
         const { parameters } = JSON.parse(jsonString) as { parameters: ParameterConfig[] }
         for (const config of parameters) {
@@ -33,7 +61,9 @@ export class ParameterManager implements IParameterManager {
     registerParameter<T extends ParameterType>(config: ParameterConfigFromType<T>): ParameterFromType<T> {
         const parameter = this.createParameter<T>(config)
         this._parameters[config.id] = parameter
-        this.setupBackendRelay(parameter)
+        if (this._backendEnabled) {
+            this.setupBackendRelay(parameter)
+        }
         return parameter
     }
 

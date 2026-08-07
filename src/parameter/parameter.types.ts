@@ -318,6 +318,37 @@ export type ParameterValueFromType<T extends ParameterType> = T extends Paramete
         : never
 
 /**
+ * The strategy a parameter manager uses for connecting parameters to a native backend.
+ */
+export type ParameterBackend =
+    /**
+     * Detects whether a real JUCE WebView host is present and relays to it only
+     * when it is. This is the default.
+     */
+    | 'auto'
+
+    /**
+     * Always relays to the JUCE backend, regardless of detection.
+     */
+    | 'juce'
+
+    /**
+     * Never relays to a backend; parameters are purely frontend objects. Use this
+     * for standalone web applications with no native host.
+     */
+    | 'none'
+
+/**
+ * Describes the options by which a parameter manager can be configured.
+ */
+export interface IParameterManagerOptions {
+    /**
+     * The backend connection strategy to use. Defaults to 'auto'.
+     */
+    backend?: ParameterBackend
+}
+
+/**
  * Describes functionality to manage our parameters in various aspects, including
  * initialization, cleanup, and simple getter methods.
  */

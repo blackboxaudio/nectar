@@ -1,6 +1,6 @@
 {
     "name": "@bbx-audio/nectar",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Collection of JUCE-y modules for building web-based plugin GUIs 🧃",
     "private": false,
     "license": "MIT",
@@ -39,7 +39,8 @@
         "lint:fix": "eslint --cache --fix \"**/*.{ts,js}\"",
         "pre-commit": "lint-staged",
         "prepare": "husky install",
-        "prepublishOnly": "yarn build"
+        "prepublishOnly": "yarn build",
+        "test": "vitest run"
     },
     "devDependencies": {
         "@eslint/js": "9.33.0",
@@ -47,6 +48,7 @@
         "globals": "16.3.0",
         "husky": "8.0.3",
         "jiti": "2.5.1",
+        "jsdom": "26.1.0",
         "lint-staged": "16.1.5",
         "prettier": "3.6.2",
         "rimraf": "6.0.1",
