@@ -1,4 +1,4 @@
-import type { Scale } from '$lib/math'
+import { applyScale, clamp, unapplyScale } from '$lib/math'
 import { ParameterChangeSource, type IFloatParameterConfig, ParameterType } from '../parameter.types.ts'
 import { BaseParameter } from './base.parameter.ts'
 
@@ -12,7 +12,7 @@ export class FloatParameter extends BaseParameter<ParameterType.Float> {
 
     constructor(config: IFloatParameterConfig) {
         super(config)
-        this._normalizedValue = this.displayToNormalized(config.defaultValue)
+        this._normalizedValue = clamp(this.displayToNormalized(config.defaultValue))
     }
 
     // Fields & attributes
@@ -35,7 +35,7 @@ export class FloatParameter extends BaseParameter<ParameterType.Float> {
 
     get normalizedDefaultValue() {
         const { defaultValue } = this.config as IFloatParameterConfig
-        return this.displayToNormalized(defaultValue)
+        return clamp(this.displayToNormalized(defaultValue))
     }
 
     setNormalizedValue(
@@ -43,7 +43,7 @@ export class FloatParameter extends BaseParameter<ParameterType.Float> {
         shouldNotify: boolean,
         source: ParameterChangeSource = ParameterChangeSource.Frontend
     ): void {
-        const clamped = Math.max(0, Math.min(1, value))
+        const clamped = clamp(value)
         if (this._normalizedValue !== clamped) {
             this._normalizedValue = clamped
             if (shouldNotify) {
@@ -56,20 +56,18 @@ export class FloatParameter extends BaseParameter<ParameterType.Float> {
         return this.normalizedToDisplay(this._normalizedValue)
     }
 
-    setDisplayValue(value: number) {
-        this._normalizedValue = this.displayToNormalized(value)
+    setDisplayValue(value: number, source: ParameterChangeSource = ParameterChangeSource.Frontend): void {
+        this.setNormalizedValue(this.displayToNormalized(value), true, source)
     }
 
     // Mathematics
 
     displayToJuceNormalized(displayValue: number): number {
         const config = this.config as IFloatParameterConfig
-        const range = config.max - config.min
-        const linear = (displayValue - config.min) / range
+        const linear = (displayValue - config.min) / (config.max - config.min)
 
         if (config.midpoint !== undefined) {
-            const normalizedMidpoint = (config.midpoint - config.min) / range
-            const skew = Math.log(normalizedMidpoint) / Math.log(0.5)
+            const skew = this.calculateSkewFactor(config.midpoint)
             if (skew === 1) {
                 return linear
             } else {
@@ -82,15 +80,26 @@ export class FloatParameter extends BaseParameter<ParameterType.Float> {
 
     displayToNormalized(displayValue: number): number {
         const config = this.config as IFloatParameterConfig
-        const clamped = Math.max(config.min, Math.min(config.max, displayValue))
-        const linear = (clamped - config.min) / (config.max - config.min)
-        return this.unapplyScale(linear, config.scale, config.midpoint)
+
+        if (config.midpoint !== undefined) {
+            const clamped = clamp(displayValue, config.min, config.max)
+            const linear = (clamped - config.min) / (config.max - config.min)
+            return this.unapplySkew(linear, config.midpoint)
+        }
+
+        return unapplyScale(displayValue, config.scale, config.min, config.max)
     }
 
     normalizedToDisplay(normalizedValue: number): number {
         const config = this.config as IFloatParameterConfig
-        const scaled = this.applyScale(normalizedValue, config.scale, config.midpoint)
-        let value = config.min + scaled * (config.max - config.min)
+
+        let value: number
+        if (config.midpoint !== undefined) {
+            const skewed = this.applySkew(clamp(normalizedValue), config.midpoint)
+            value = config.min + skewed * (config.max - config.min)
+        } else {
+            value = applyScale(normalizedValue, config.scale, config.min, config.max)
+        }
 
         if (config.interval) {
             value = this.snapToInterval(value)
@@ -114,44 +123,14 @@ export class FloatParameter extends BaseParameter<ParameterType.Float> {
         }
     }
 
-    private applyScale(normalizedValue: number, scale?: Scale, midpoint?: number): number {
-        if (midpoint !== undefined) {
-            const skew = this.calculateSkewFactor(midpoint)
-            if (skew === 1) {
-                return normalizedValue
-            } else {
-                return Math.pow(normalizedValue, skew)
-            }
-        } else {
-            switch (scale) {
-                case 'exponential':
-                    return normalizedValue * normalizedValue
-                case 'logarithmic':
-                    return normalizedValue === 0 ? 0 : Math.pow(10, normalizedValue * 2 - 2)
-                default:
-                    return normalizedValue
-            }
-        }
+    private applySkew(normalizedValue: number, midpoint: number): number {
+        const skew = this.calculateSkewFactor(midpoint)
+        return skew === 1 ? normalizedValue : Math.pow(normalizedValue, skew)
     }
 
-    private unapplyScale(scaled: number, scale?: Scale, midpoint?: number): number {
-        if (midpoint !== undefined) {
-            const skew = this.calculateSkewFactor(midpoint)
-            if (skew === 1) {
-                return scaled
-            } else {
-                return Math.pow(scaled, 1 / skew)
-            }
-        } else {
-            switch (scale) {
-                case 'exponential':
-                    return Math.sqrt(scaled)
-                case 'logarithmic':
-                    return scaled === 0 ? 0 : (Math.log10(scaled) + 2) / 2
-                default:
-                    return scaled
-            }
-        }
+    private unapplySkew(linear: number, midpoint: number): number {
+        const skew = this.calculateSkewFactor(midpoint)
+        return skew === 1 ? linear : Math.pow(linear, 1 / skew)
     }
 
     private snapToInterval(value: number): number {
